@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site d'Apprentissage BTS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Bouton hamburger pour ouvrir la sidebar (visible quand elle est fermée) -->
+    <div class="menu-toggle" id="menuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Overlay sombre qui apparaît quand la sidebar est ouverte -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Sidebar (maintenant en mode drawer) -->
+    <aside class="sidebar" id="sidebar">
+        <h2>Choix du niveau de BT</h2>
+        <nav class="sidebar-nav">
+            <!-- Les onglets sont maintenant des boutons stylés -->
+            <a href="1bt.html" class="btn-sidebar active">1ÈRE ANNÉE</a>
+            <a href="2bt.html" class="btn-sidebar">2EME ANNÉE</a>
+            <a href="3bt.html" class="btn-sidebar">3EME ANNÉE</a>
+            <a href="btexo.html" class="btn-sidebar">Exercices</a>
+            
+        </nav>
+    </aside>
+
+    <section class="platform-benefits">
+    <div class="benefits-container">
+        <h2 class="section-title">Votre Plateforme Éducative BT</h2>
+        <p class="section-subtitle">Un outil stratégique pour réussir votre Brevet de Technicien Supérieur</p>
+        
+        <div class="benefits-grid">
+            <!-- Carte 1 -->
+            <div class="benefit-card">
+                <div class="benefit-icon">📅</div>
+                <h3>Gestion du Temps Optimisée</h3>
+                <p>Anticipez votre charge de travail et planifiez vos révisions sur l'ensemble du semestre pour une organisation professionnelle.</p>
+            </div>
+
+            <!-- Carte 2 -->
+            <div class="benefit-card">
+                <div class="benefit-icon">🎯</div>
+                <h3>Préparation Ciblée</h3>
+                <p>Préparez vos cours à l'avance et arrivez en amphi avec une longueur d'avance sur les concepts complexes.</p>
+            </div>
+
+            <!-- Carte 3 -->
+            <div class="benefit-card">
+                <div class="benefit-icon">📚</div>
+                <h3>Révisions Structurées</h3>
+                <p>Accédez à l'ensemble de vos cours pour créer des fiches de révision complètes et préparer vos examens efficacement.</p>
+            </div>
+
+            <!-- Carte 4 -->
+            <div class="benefit-card">
+                <div class="benefit-icon">⚡</div>
+                <h3>Rattrapage Rapide</h3>
+                <p>Ne prenez jamais de retard grâce à un accès immédiat aux cours manqués, essentiel dans un rythme de BTS soutenu.</p>
+            </div>
+
+            <!-- Carte 5 -->
+            <div class="benefit-card">
+                <div class="benefit-icon">💼</div>
+                <h3>Approche Professionnelle</h3>
+                <p>Développez votre autonomie et créez votre base de connaissances pour vos projets et stages en entreprise.</p>
+            </div>
+
+            <!-- Carte 6 -->
+            <div class="benefit-card">
+                <div class="benefit-icon">🔗</div>
+                <h3>Vision Globale</h3>
+                <p>Établissez des liens entre les différents modules et créez une compréhension globale de votre formation.</p>
+            </div>
+        </div>
+
+        <div class="scenario-section">
+            <h3>Scénario Pratique</h3>
+            <div class="scenario-comparison">
+                <div class="scenario bad">
+                    <h4>Sans la plateforme</h4>
+                    <p>Perte de temps à chercher dans les vieux cahiers, informations incomplètes, retard dans les dossiers à rendre.</p>
+                </div>
+                <div class="scenario good">
+                    <h4>Avec la plateforme</h4>
+                    <p>Accès immédiat aux ressources, application directe des concepts, avancement efficace sur les projets.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+   </section>
+
+    <!-- Barre de navigation du bas (inchangée, toute blanche) -->
+    <nav class="bottom-nav">
+        <ul>
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="propos.html">À Propos</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="conf.html">confidentialité</a></li>
+        </ul>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>

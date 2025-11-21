@@ -22,21 +22,29 @@
     .btn { background:#238636; color:white; padding:0.9rem 2rem; border-radius:12px; text-decoration:none; font-weight:bold; transition:0.3s; }
     .btn:hover { background:#2ea043; }
 
-    /* Modal plein écran avec barre d'outils PDF.js */
+    /* ==== À COLLER DANS LA BALISE <style> ====
+
     .modal {
-      display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.98); overflow:hidden;
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      overflow: hidden;          /* très important */
     }
-    .modal-header {
-      position:fixed; top:0; left:0; right:0; height:60px; background:#202020; z-index:1001;
-      display:flex; align-items:center; justify-content:space-between; padding:0 2rem; color:white; font-size:1.4em;
-    }
-    .close { cursor:pointer; font-size:2rem; }
+
+    /* Le lecteur PDF prend TOUT l’écran, même sur mobile */
     .pdf-viewer {
-      position:absolute; top:60px; left:0; right:0; bottom:0;
-      border:none;
-    }
-    footer { margin:6rem 0 2rem; color:#58a6ff; text-align:center; }
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      }
   </style>
 </head>
 <body>
@@ -97,7 +105,7 @@
           // Au clic → ouvre le lecteur PDF.js avec barre complète
           card.onclick = () => {
             const rawUrl = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
-            viewer.src = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(rawUrl)}#toolbar=100`;
+            viewer.src = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}#zoom=page-width`;
             title.textContent = file.name;
             modal.style.display = "block";
           };

@@ -97,7 +97,7 @@
           // Au clic → ouvre le lecteur PDF.js avec barre complète
           card.onclick = () => {
             const rawUrl = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
-            viewer.src = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(rawUrl)}#toolbar=1`;
+            viewer.src = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(rawUrl)}#toolbar=100`;
             title.textContent = file.name;
             modal.style.display = "block";
           };

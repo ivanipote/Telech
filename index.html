@@ -6,83 +6,56 @@
   <title>Mes PDF Maths • Ivanipote</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    body { margin:0; background:#0d1117; color:#c9d1d9; font-family:'Inter',sans-serif; }
-    .container { max-width:1200px; margin:0 auto; padding:2rem 1rem; text-align:center; }
+    body { margin:0; background:#0d1117; color:#c9d1d9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
+    .container { max-width:1100px; margin:0 auto; text-align:center; }
     h1 { font-size:3em; background:linear-gradient(90deg,#58a6ff,#8b9eff);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
     .cards { display:grid; gap:2rem; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); margin-top:3rem; }
     .card {
-      background:#161b22; border:1px solid #30363d; border-radius:16px; padding:2rem; cursor:pointer;
-      transition:0.4s; text-align:center; position:relative; overflow:hidden;
+      background:#161b22; border:1px solid #30363d; border-radius:16px; padding:2rem;
+      transition:0.4s; text-align:center;
     }
-    .card:hover { transform:translateY(-12px); box-shadow:0 20px 40px rgba(88,166,255,0.3); border-color:#58a6ff; }
+    .card:hover { transform:translateY(-12px); box-shadow:0 20px 40px rgba(88,166,255,0.2); border-color:#58a6ff; }
     .icon { font-size:5rem; margin-bottom:1rem; }
     .name { font-size:1.4em; color:white; margin:1rem 0; word-break:break-all; }
     .info { color:#8b949e; margin:1rem 0; }
     .btn {
-      background:#238636; color:white; padding:0.8rem 1.8rem; border-radius:12px; text-decoration:none;
+      background:#238636; color:white; padding:1rem 2rem; border-radius:12px; text-decoration:none;
       font-weight:bold; display:inline-block; transition:0.3s;
     }
-    .btn:hover { background:#2ea043; }
-
-    /* Modal aperçu PDF */
-    .modal {
-      display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.95); overflow:auto;
-    }
-    .modal-content {
-      margin:2% auto; width:90%; max-width:1000px; height:92vh; border:none; border-radius:16px;
-    }
-    .close {
-      position:absolute; top:20px; right:35px; color:#f0f0f0; font-size:3rem; font-weight:bold; cursor:pointer; z-index:1001;
-    }
-    footer { margin:5rem 0 2rem; color:#58a6ff; }
+    .btn:hover { background:#2ea043; transform:scale(1.05); }
+    footer { margin-top:5rem 0 2rem; color:#58a6ff; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <h1>📚 Mes PDF Maths</h1>
-    <p style="font-size:1.4em; color:#8b949e;">Clique sur un fichier pour voir l’aperçu + télécharger</p>
+    <p style="font-size:1.3em; color:#8b949e;">Tous les fichiers du dossier myfiles • Mise à jour automatique</p>
 
     <div id="files" class="cards"></div>
 
-    <p id="empty" style="font-size:1.8em; padding:6rem; display:none;">📂 Aucun PDF pour le moment… mais ça va venir !</p>
+    <p id="empty" style="font-size:1.8em; padding:4rem; display:none;">📂 Aucun PDF pour le moment…</p>
   </div>
 
-  <!-- Modal pour l’aperçu PDF -->
-  <div id="pdfModal" class="modal">
-    <span class="close">×</span>
-    <iframe id="pdfFrame" class="modal-content" src=""></iframe>
-  </div>
+  <footer>© Ivanipote – Hébergé gratuitement sur GitHub Pages ❤️</footer>
 
-  <footer>© Ivanipote – Hébergé sur GitHub Pages ❤️</footer>
-
-  <!-- PDF.js depuis CDN Mozilla -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
-
-  <script type="module">
-    import { GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
-    GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
-
+  <script>
     const repo = "ivanipote/Telech";
     const folder = "myfiles";
 
-    const modal = document.getElementById('pdfModal');
-    const frame = document.getElementById('pdfFrame');
-    const closeBtn = document.querySelector('.close');
-
-    async function loadFiles() {
+    async function load() {
       const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
       const files = await res.json();
 
-      const container = document.getElementById('files');
+      const container = document.getElementById("files");
+
       if (!Array.isArray(files) || files.length === 0) {
-        document.getElementById('empty').style.display = "block";
+        document.getElementById("empty").style.display = "block";
         return;
       }
 
       files
-        .filter(f => f.type === "file" && f.name.toLowerCase().endsWith('.pdf'))
+        .filter(f => f.type === "file")
         .sort((a,b) => a.name.localeCompare(b.name))
         .forEach(file => {
           const size = (file.size / 1024 / 1024).toFixed(2);
@@ -94,29 +67,16 @@
             <div class="icon">📕</div>
             <div class="name">${file.name}</div>
             <div class="info">Taille : ${size} Mo • ${date}</div>
-            <a href="https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}" class="btn" download>
-              ⬇ Télécharger
+            <a href="https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}"
+               class="btn" download>
+              ⬇️ Télécharger le PDF
             </a>
           `;
-
-          // Au clic → aperçu dans le modal avec PDF.js
-          card.onclick = () => {
-            const pdfUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/web/viewer.html?file=${encodeURIComponent(
-              `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`
-            )}`;
-            frame.src = pdfUrl;
-            modal.style.display = "block";
-          };
-
           container.appendChild(card);
         });
     }
 
-    // Fermer le modal
-    closeBtn.onclick = () => { modal.style.display = "none"; frame.src = ""; };
-    window.onclick = (e) => { if (e.target === modal) { modal.style.display = "none"; frame.src = ""; } };
-
-    loadFiles();
+    load();
   </script>
 </body>
 </html>

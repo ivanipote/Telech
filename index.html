@@ -9,72 +9,66 @@
     body { margin:0; background:#0d1117; color:#c9d1d9; font-family:'Inter',sans-serif; }
     .container { max-width:1200px; margin:0 auto; padding:2rem 1rem; text-align:center; }
     h1 { font-size:3em; background:linear-gradient(90deg,#58a6ff,#8b9eff);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
-    .subtitle { font-size:1.4em; color:#8b949e; margin:2rem 0; }
-    .cards { display:grid; gap:2rem; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); }
+    .cards { display:grid; gap:2rem; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); margin-top:3rem; }
     .card {
       background:#161b22; border:1px solid #30363d; border-radius:16px; padding:2rem; cursor:pointer;
-      transition:0.4s; text-align:center;
+      transition:0.4s; text-align:center; position:relative; overflow:hidden;
     }
     .card:hover { transform:translateY(-12px); box-shadow:0 20px 40px rgba(88,166,255,0.3); border-color:#58a6ff; }
     .icon { font-size:5rem; margin-bottom:1rem; }
     .name { font-size:1.4em; color:white; margin:1rem 0; word-break:break-all; }
     .info { color:#8b949e; margin:1rem 0; }
-    .btn { background:#238636; color:white; padding:0.9rem 2rem; border-radius:12px; text-decoration:none; font-weight:bold; transition:0.3s; }
+    .btn {
+      background:#238636; color:white; padding:0.8rem 1.8rem; border-radius:12px; text-decoration:none;
+      font-weight:bold; display:inline-block; transition:0.3s;
+    }
     .btn:hover { background:#2ea043; }
 
-    /* ==== À COLLER DANS LA BALISE <style> ====
-
+    /* Modal aperçu PDF */
     .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #000;
-      overflow: hidden;          /* très important */
+      display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.95); overflow:auto;
     }
-
-    /* Le lecteur PDF prend TOUT l’écran, même sur mobile */
-    .pdf-viewer {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      }
+    .modal-content {
+      margin:2% auto; width:90%; max-width:1000px; height:92vh; border:none; border-radius:16px;
+    }
+    .close {
+      position:absolute; top:20px; right:35px; color:#f0f0f0; font-size:3rem; font-weight:bold; cursor:pointer; z-index:1001;
+    }
+    footer { margin:5rem 0 2rem; color:#58a6ff; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <h1>📚 Mes PDF Maths</h1>
-    <p class="subtitle">Clique sur un fichier → aperçu avec barre d’outils complète (zoom, télécharger, imprimer…)</p>
+    <p style="font-size:1.4em; color:#8b949e;">Clique sur un fichier pour voir l’aperçu + télécharger</p>
 
     <div id="files" class="cards"></div>
-    <p id="empty" style="font-size:1.8em; padding:8rem; display:none;">📂 Aucun PDF pour le moment</p>
+
+    <p id="empty" style="font-size:1.8em; padding:6rem; display:none;">📂 Aucun PDF pour le moment… mais ça va venir !</p>
+  </div>
+
+  <!-- Modal pour l’aperçu PDF -->
+  <div id="pdfModal" class="modal">
+    <span class="close">×</span>
+    <iframe id="pdfFrame" class="modal-content" src=""></iframe>
   </div>
 
   <footer>© Ivanipote – Hébergé sur GitHub Pages ❤️</footer>
 
-  <!-- Modal lecteur PDF -->
-  <div id="pdfModal" class="modal">
-    <div class="modal-header">
-      <span id="pdfTitle">Aperçu PDF</span>
-      <span class="close">×</span>
-    </div>
-    <iframe id="pdfViewer" class="pdf-viewer" src=""></iframe>
-  </div>
+  <!-- PDF.js depuis CDN Mozilla -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
 
-  <script>
+  <script type="module">
+    import { GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+    GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+
     const repo = "ivanipote/Telech";
     const folder = "myfiles";
 
     const modal = document.getElementById('pdfModal');
-    const viewer = document.getElementById('pdfViewer');
-    const title = document.getElementById('pdfTitle');
+    const frame = document.getElementById('pdfFrame');
     const closeBtn = document.querySelector('.close');
 
     async function loadFiles() {
@@ -82,7 +76,7 @@
       const files = await res.json();
 
       const container = document.getElementById('files');
-      if (!files.length) {
+      if (!Array.isArray(files) || files.length === 0) {
         document.getElementById('empty').style.display = "block";
         return;
       }
@@ -92,21 +86,25 @@
         .sort((a,b) => a.name.localeCompare(b.name))
         .forEach(file => {
           const size = (file.size / 1024 / 1024).toFixed(2);
+          const date = new Date(file.updated_at).toLocaleDateString("fr-FR");
 
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `
             <div class="icon">📕</div>
             <div class="name">${file.name}</div>
-            <div class="info">Taille : ${size} Mo</div>
-            <div class="btn">👁️ Voir l'aperçu</div>
+            <div class="info">Taille : ${size} Mo • ${date}</div>
+            <a href="https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}" class="btn" download>
+              ⬇ Télécharger
+            </a>
           `;
 
-          // Au clic → ouvre le lecteur PDF.js avec barre complète
+          // Au clic → aperçu dans le modal avec PDF.js
           card.onclick = () => {
-            const rawUrl = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
-            viewer.src = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}#zoom=page-width`;
-            title.textContent = file.name;
+            const pdfUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/web/viewer.html?file=${encodeURIComponent(
+              `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`
+            )}`;
+            frame.src = pdfUrl;
             modal.style.display = "block";
           };
 
@@ -115,16 +113,8 @@
     }
 
     // Fermer le modal
-    closeBtn.onclick = () => {
-      modal.style.display = "none";
-      viewer.src = "";
-    };
-    window.onclick = (e) => {
-      if (e.target === modal) {
-        modal.style.display = "none";
-        viewer.src = "";
-      }
-    };
+    closeBtn.onclick = () => { modal.style.display = "none"; frame.src = ""; };
+    window.onclick = (e) => { if (e.target === modal) { modal.style.display = "none"; frame.src = ""; } };
 
     loadFiles();
   </script>

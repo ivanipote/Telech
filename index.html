@@ -1,39 +1,123 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Téléchargement de fichiers</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Téléchargements | Ivanipote</title>
+  <meta name="description" content="Tableaux de dérivées et primitives - Développement limité - Maths Terminale"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css"/>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0d1117, #161b22);
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 3.2em;
+      background: linear-gradient(90deg, #58a6ff, #8b9eff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.2em;
+    }
+    .subtitle {
+      color: #8b949e;
+      font-size: 1.4em;
+      margin-bottom: 3rem;
+    }
+    .card {
+      background: #161b22;
+      border: 2px solid #30363d;
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      transition: all 0.4s;
+    }
+    .card:hover {
+      transform: translateY(-15px);
+      box-shadow: 0 30px 60px rgba(88,166,255,0.4);
+      border-color: #58a6ff;
+    }
+    .icon {
+      font-size: 6rem;
+      margin-bottom: 1.5rem;
+    }
+    .filename {
+      font-size: 1.8em;
+      margin: 1.5rem 0 1rem;
+      color: white;
+      word-break: break-word;
+    }
+    .details {
+      color: #8b949e;
+      font-size: 1.2em;
+      margin: 1.5rem 0;
+    }
+    .btn {
+      display: inline-block;
+      background: #238636;
+      color: white;
+      font-size: 1.4em;
+      font-weight: bold;
+      padding: 1.2rem 3rem;
+      border-radius: 50px;
+      text-decoration: none;
+      margin-top: 2rem;
+      box-shadow: 0 10px 20px rgba(35,134,54,0.4);
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      background: #2ea043;
+      transform: scale(1.08);
+      box-shadow: 0 15px 30px rgba(46,160,67,0.5);
+    }
+    footer {
+      margin-top: 6rem;
+      color: #58a6ff;
+      font-size: 1.1em;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Centre de Téléchargement</h1>
-    </header>
-    <main>
-        <section class="download-section">
-            <h2>PDF : 2015 - tableaux dérivées, primitives, DL</h2>
-            <p>
-                Ce fichier contient des tableaux de dérivées, des primitives et des développements limités utiles en mathématiques.<br>
-                <a class="download-button" href="https://raw.githubusercontent.com/ivanipote/Telech/main/Myfiles/2015%20-%20tableaux%20d%C3%A9riv%C3%A9es%2C%20primitives%2C%20DL.pdf" download>
-                    Télécharger le PDF
-                </a>
-            </p>
-        </section>
-        <section class="download-section">
-            <h2>Image : 20250926_154639(0).jpg</h2>
-            <p>
-                Aperçu de l'image :<br>
-                <img class="preview-img" src="https://raw.githubusercontent.com/ivanipote/Telech/main/Myfiles/20250926_154639(0).jpg" alt="20250926_154639(0).jpg" />
-                <br>
-                <a class="download-button" href="https://raw.githubusercontent.com/ivanipote/Telech/main/Myfiles/20250926_154639(0).jpg" download>
-                    Télécharger l'image JPG
-                </a>
-            </p>
-        </section>
-    </main>
+  <div class="container">
+    <h1>📚 Mes Fichiers Maths</h1>
+    <p class="subtitle">Téléchargements gratuits & mise à jour automatique</p>
+
+    <div class="card">
+      <div class="icon">📕</div>
+      <div class="filename">
+        2015 - tableaux dérivées, primitives, DL.pdf
+      </div>
+      <div class="details">
+        Tableau complet des dérivées usuelles<br>
+        Primitives classiques • Développements limités<br>
+        Format PDF • Parfait pour Terminale & Prépa
+      </div>
+
+      <!-- LIEN DIRECT VERS TON FICHIER -->
+      <a href="https://ivanipote.github.io/Telech/myfiles/2015%20-%20tableaux%20d%C3%A9riv%C3%A9es,%20primitives,%20DL.pdf" 
+         class="btn" download>
+        ⬇️ Télécharger le PDF (gratuit)
+      </a>
+
+      <!-- Version alternative avec raw.githubusercontent.com (plus rapide parfois) -->
+      <!-- <a href="https://raw.githubusercontent.com/ivanipote/Telech/main/myfiles/2015 - tableaux dérivées, primitives, DL.pdf" class="btn" download>⬇️ Télécharger</a> -->
+    </div>
+
+    <p style="margin-top:4rem; color:#58a6ff;">
+      D’autres fichiers arrivent très bientôt !
+    </p>
+
     <footer>
-        <p style="font-size:0.9rem;color:#444">Pour accéder à cette page depuis Internet, activez GitHub Pages dans les paramètres du dépôt.</p>
+      © 2025 • Ivanipote – Hébergé sur GitHub Pages ❤️
     </footer>
+  </div>
 </body>
-</html>
+    </html>

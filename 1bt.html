@@ -44,88 +44,149 @@
     </aside>
     <main>
         
-    <style>
-        .section-electro {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        h1 {
-            text-align: center;
-            font-size: 2.8rem;
-            margin-bottom: 20px;
-            color: #00d4ff;
-            text-shadow: 0 0 10px rgba(0,212,255,0.5);
-        }
-        .intro {
-            font-size: 1.3rem;
-            text-align: center;
-            margin-bottom: 40px;
-            line-height: 1.6;
-        }
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 40px;
-        }
-        .card {
-            background: rgba(255,255,255,0.1);
-            padding: 25px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0,212,255,0.3);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,212,255,0.3);
-        }
-        .card h3 {
-            color: #00ff9d;
-            margin-top: 0 0 15px 0;
-            font-size: 1.5rem;
-        }
-        .motivation {
-            text-align: center;
-            margin-top: 50px;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #00ff9d00;
-            text-shadow: 0 0 15px rgba(255,157,0,0.6);
-        }
-    </style>
-</head>
-<body>
-
-<section class="section-electro">
-    <h1>Bienvenue en 1ʳᵉ année BT Électromécanique !</h1>
+    
+        <section class="welcome-electro-clean">
+  <div class="container">
+    <h1>Bienvenue en 1ʳᵉ année BT Électromécanique ! ⚡🔧</h1>
     
     <p class="intro">
-        Vous avez choisi une filière d’avenir qui combine l’électricité, la mécanique, l’automatisation et les technologies de pointe. 
-        Vous êtes les futurs techniciens qui feront tourner les usines de demain, réparerez et concevrez et maintiendrez les machines intelligentes 
-        qui produisent notre énergie, nos véhicules électriques et nos robots industriels.
+      Vous avez choisi une filière d’avenir qui mélange électricité, mécanique, automatisation et technologies de pointe.<br>
+      Vous êtes les futurs techniciens qui feront tourner les usines de demain, les véhicules électriques et les robots industriels !
     </p>
 
-    
+    <div class="cards-grid">
+      <div class="card">
+        <h3>🔥 Des vrais métiers</h3>
+        <p>Moteurs, automates PLC, hydraulique, pneumatique, soudage, maintenance… Vous touchez à tout et vous devenez ultra-polyvalents !</p>
+      </div>
+      
+      <div class="card">
+        <h3>🛠️ 50 % mains, 50 % cerveau</h3>
+        <p>Un jour vous câblez un tableau électrique, le lendemain vous programmez un robot. C’est exactement ce que cherchent toutes les entreprises !</p>
+      </div>
+      
+      <div class="card">
+        <h3>🚀 Un diplôme en or</h3>
+        <p>Taux d’insertion > 90 % dès la sortie ou poursuite directe en bachelier. Le monde du travail vous attend les bras ouverts !</p>
+      </div>
+    </div>
 
-    <p class="motivation">
-        Alors oui, les premiers mois sont intenses.<br>
-        Oui, il y a des schémas électriques à comprendre et des machines à apprivoiser.<br><br>
-        Mais chaque effort que vous faites aujourd’hui vous rapproche d’un métier passion, bien payé et recherché partout.<br><br>
-        <strong>Vous êtes au bon endroit. Vous avez tout pour réussir.<br>
-        On croit en vous à 10 000 % !</strong>
-    </p>
+    <div class="big-motivation">
+      <p>
+        Oui, les premiers mois sont intenses.<br>
+        Oui, il y a des schémas à comprendre et des machines à dompter.<br><br>
+        Mais chaque effort que vous faites aujourd’hui<br>
+        vous rapproche d’un métier passion, bien payé et recherché partout.
+      </p>
+      <p class="punchline">
+        Vous êtes au bon endroit.<br>
+        <strong>Vous avez tout pour cartonner à 10 000 % !</strong>
+      </p>
+    </div>
 
-    <p style="text-align:center; margin-top:40px; font-size:1.2rem;">
-        💪 L’équipe pédagogique et tous vos professeurs sont là pour vous accompagner.<br>
-        N’hésitez jamais à poser des questions : c’est comme ça qu’on devient excellent !
+    <p class="footer-txt">
+      💪 L’équipe et vos profs sont là à fond pour vous.<br>
+      Posez toutes vos questions → c’est comme ça qu’on devient des pros !
     </p>
+  </div>
+</section>
+
+<style>
+  .welcome-electro-clean {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 70px 40px;
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Petit détail lumineux sans flou */
+  .welcome-electro-clean::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #00d4ff, #00ff9d, #00d4ff);
+    box-shadow: 0 0 20px rgba(0,212,255,0.8);
+  }
+
+  .container { position: relative; z-index: 2; }
+
+  .welcome-electro-clean h1 {
+    text-align: center;
+    font-size: 3.2rem;
+    margin-bottom: 30px;
+    color: #00e1ff;
+    text-shadow: 0 0 20px rgba(0,225,255,0.6);
+  }
+
+  .intro {
+    text-align: center;
+    font-size: 1.45rem;
+    line-height: 1.8;
+    margin-bottom: 50px;
+    opacity: 0.95;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.08);
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid rgba(0,212,255,0.4);
+    transition: all 0.4s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-12px);
+    border-color: #00ff9d;
+    box-shadow: 0 15px 35px rgba(0,255,157,0.3);
+  }
+
+  .card h3 {
+    color: #00ff9d;
+    font-size: 1.7rem;
+    margin-bottom: 15px;
+  }
+
+  .big-motivation {
+    text-align: center;
+    font-size: 1.8rem;
+    line-height: 2;
+    background: rgba(0,0,0,0.4);
+    padding: 45px;
+    border-radius: 18px;
+    margin: 60px 0;
+  }
+
+  .punchline {
+    margin-top: 30px;
+    font-size: 2.4rem;
+    color: #00ff9d;
+    text-shadow: 0 0 20px rgba(0,255,157,0.7);
+  }
+
+  .footer-txt {
+    text-align: center;
+    font-size: 1.35rem;
+    opacity: 0.9;
+  }
+
+  @media (max-width: 768px) {
+    .welcome-electro-clean { padding: 50px 20px; }
+    .welcome-electro-clean h1 { font-size: 2.6rem; }
+    .punchline { font-size: 2rem; }
+  }
+                </style>
 </section>
 
 </body>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recherche Électromécanique • Ivanipote</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: #ffffff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; text-align: center; }
+    h1 {
+      font-size: 3rem;
+      color: #00ff9d;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 20px rgba(0,255,157,0.5);
+    }
+    .search-box {
+      margin: 2rem auto;
+      max-width: 600px;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 1.2rem 1.5rem;
+      font-size: 1.3rem;
+      border: 3px solid #00ff9d;
+      border-radius: 50px;
+      background: #111;
+      color: white;
+      outline: none;
+      text-align: center;
+      transition: 0.3s;
+    }
+    #searchInput:focus {
+      box-shadow: 0 0 25px rgba(0,255,157,0.6);
+      border-color: #00ff9d;
+    }
+    .cards { 
+      display: grid; 
+      gap: 2rem; 
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      margin-top: 3rem;
+    }
+    .card {
+      background: #111111;
+      border: 2px solid #00ff9d;
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.4s;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .card:hover {
+      transform: translateY(-12px);
+      box-shadow: 0 20px 40px rgba(0,255,157,0.4);
+    }
+    .icon { font-size: 4.5rem; margin-bottom: 1rem; }
+    .name { font-size: 1.4rem; color: white; margin: 1rem 0; word-break: break-all; }
+    .info { color: #b0ffdb; margin: 1rem 0; }
+    .btn {
+      display: block;
+      background: linear-gradient(90deg, #00ff9d, #00cc7a);
+      color: black;
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .btn:hover { transform: scale(1.05); }
+    .no-results {
+      font-size: 2rem;
+      color: #ff0066;
+      margin-top: 4rem;
+      display: none;
+    }
+    footer { margin-top: 6rem; color: #00ff9d; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>⚡ Recherche Électromécanique</h1>
+    <p style="color:#b0ffdb; font-size:1.4rem;">Tape un mot-clé : moteur, schéma, transformateur, contacteur, variateur, plc...</p>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Recherche dans tous les fichiers..." autocomplete="off">
+    </div>
+
+    <div id="files" class="cards"></div>
+    <p class="no-results" id="noResults">Aucun fichier trouvé 😔</p>
+  </div>
+
+  <footer>© Ivanipote – Électromécanique 2025</footer>
+
+  <script>
+    const repo = "ivanipote/Telech";
+    const folder = "myfiles";          // ←←← Tu peux changer en "myfiles_electro" si tu crées un dossier dédié plus tard
+
+    let allFiles = [];
+
+    async function loadFiles() {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
+      const files = await res.json();
+
+      allFiles = files.filter(f => f.type === "file");
+
+      // Affichage initial (tous les fichiers)
+      displayFiles(allFiles);
+    }
+
+    function displayFiles(filesToShow) {
+      const container = document.getElementById("files");
+      container.innerHTML = "";
+
+      if (filesToShow.length === 0) {
+        document.getElementById("noResults").style.display = "block";
+        return;
+      } else {
+        document.getElementById("noResults").style.display = "none";
+      }
+
+      filesToShow.forEach((file, index) => {
+        const isPDF = file.name.toLowerCase().endsWith('.pdf');
+        const icon = isPDF ? "📄" : "📦";
+        const size = (file.size / 1024 / 1024).toFixed(2);
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.style.transitionDelay = `${index * 0.05}s`; // petit effet d'apparition en cascade
+        card.innerHTML = `
+          <div class="icon">${icon}</div>
+          <div class="name">${file.name}</div>
+          <div class="info">Taille : ${size} Mo</div>
+          <a href="https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}"
+             class="btn" download>
+            ⬇ Télécharger
+          </a>
+        `;
+        container.appendChild(card);
+
+        // Animation d'apparition
+        setTimeout(() => card.classList.add("visible"), 50);
+      });
+    }
+
+    // Recherche en temps réel
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase().trim();
+
+      if (query === "") {
+        displayFiles(allFiles);
+        return;
+      }
+
+      const filtered = allFiles.filter(file =>
+        file.name.toLowerCase().includes(query)
+      );
+
+      displayFiles(filtered);
+    });
+
+    // Chargement au démarrage
+    loadFiles();
+  </script>
+</body>
+  </html>

@@ -28,7 +28,7 @@
     <h1>Recherche dans les Cours PDF</h1>
     <input type="text" id="search" class="search" placeholder="Tape un mot : contacteur, Pythagore, variateur, transformateur…" autofocus>
 
-    <div class="status" id="status">Indexation des PDF du dossier pdf_cours en cours… (quelques secondes)</div>
+    <div class="status" id="status">Chargement du dossier pdf_cours…</div>
 
     <div id="results" class="results"></div>
     <p class="no-results" id="noResults">Aucun résultat trouvé</p>
@@ -40,39 +40,51 @@
     import { getDocument } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
 
-    const repo = "ivanipote/Telech/";
-    const folder = "pdf_cours";  // ← ton dossier exact
+    const repo = "ivanipote/Telech";
+    const folder = "pdf_cours";
     let pdfs = [];
 
     async function loadAndIndexPDFs() {
-      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
-      const files = await res.json();
-      const pdfFiles = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+      try {
+        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
+        if (!res.ok) throw new Error("Dossier non trouvé");
+        const files = await res.json();
 
-      document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF…`;
+        const pdfFiles = files.filter(f => f.type === "file" && f.name.toLowerCase().endsWith('.pdf'));
 
-      for (const file of pdfFiles) {
-        const url = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
-        let text = "";
-        try {
-          const loadingTask = getDocument(url);
-          const pdf = await loadingTask.promise;
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            text += content.items.map(item => item.str).join(" ") + " ";
-          }
-        } catch (e) { text = ""; }
+        if (pdfFiles.length === 0) {
+          document.getElementById("status").innerHTML = `Dossier <code>pdf_cours</code> vide ou inexistant.<br>Ajoute tes PDF dedans et rafraîchis la page !`;
+          return;
+        }
 
-        pdfs.push({
-          name: file.name,
-          url: url,
-          text: text.toLowerCase(),
-          size: (file.size / 1024 / 1024).toFixed(2)
-        });
+        document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF en cours…`;
+
+        for (const file of pdfFiles) {
+          const url = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
+          let text = file.name.toLowerCase(); // au minimum le nom est indexé
+          try {
+            const loadingTask = getDocument(url);
+            const pdf = await loadingTask.promise;
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              text += " " + content.items.map(item => item.str).join(" ").toLowerCase();
+            }
+          } catch (e) { console.log("PDF non lisible : ${file.name}`); }
+
+          pdfs.push({
+            name: file.name,
+            url: url,
+            text: text,
+            size: (file.size / 1024 / 1024).toFixed(2)
+          });
+        }
+
+        document.getElementById("status").textContent = `${pdfs.length} PDF prêts – tape ton mot-clé ! ⚡`;
+
+      } catch (e) {
+        document.getElementById("status").innerHTML = `Erreur : le dossier <code>pdf_cours</code> n'existe pas ou est vide.<br>Crée-le et ajoute tes PDF !`;
       }
-
-      document.getElementById("status").textContent = `${pdfs.length} PDF indexés – tu peux chercher ! ⚡`;
     }
 
     const searchInput = document.getElementById("search");
@@ -87,7 +99,7 @@
         return;
       }
 
-      const found = pdfs.filter(p => p.name.toLowerCase().includes(query) || p.text.includes(query));
+      const found = pdfs.filter(p => p.text.includes(query));
 
       if (found.length === 0) {
         document.getElementById("noResults").style.display = "block";
@@ -97,7 +109,7 @@
 
       found.forEach(p => {
         const snippet = p.text.includes(query)
-          ? "..." + p.text.substring(p.text.indexOf(query) - 60, p.text.indexOf(query) + query.length + 100).replace(new RegExp(`(${query})`, 'gi'), '<mark>$1</mark>') + "..."
+          ? "..." + p.text.substring(Math.max(0, p.text.indexOf(query) - 60), p.text.indexOf(query) + query.length + 100).replace(new RegExp(`(${query})`, 'gi'), '<mark>$1</mark>') + "..."
           : "Mot trouvé dans le document";
 
         const card = document.createElement("div");
@@ -118,4 +130,4 @@
     loadAndIndexPDFs();
   </script>
 </body>
-  </html>
+</html>

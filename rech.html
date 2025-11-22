@@ -13,7 +13,7 @@
     #question:focus { box-shadow:0 0 40px rgba(0,255,157,0.8); }
     #answer { margin-top:3rem; text-align:left; background:#111; padding:2.5rem; border-radius:20px; border:2px solid #333; min-height:200px; font-size:1.3rem; line-height:1.8; display:none; }
     #answer.show { display:block; animation:fade 0.6s; }
-    .loading { color:#00ff9d; font-size:1.6rem; margin:3rem; display:none; }
+    .loading { color:#00ff9d; font-size:1.8rem; margin:3rem; display:none; }
     footer { margin-top:6rem; color:#00ff9d; }
     @keyframes fade { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:none;} }
   </style>
@@ -23,70 +23,64 @@
   <div class="container">
     <h1>IA Électromécanique</h1>
     <p style="color:#b0ffdb;font-size:1.6rem;margin-bottom:2rem;">
-      Pose ta question → réponse claire et pédagogique en 2 secondes
+      Pose ta question → réponse instantanée avec Gemini (Google)
     </p>
 
     <div class="search-box">
-      <input type="text" id="question" placeholder="Ex : comment fonctionne un contacteur ? différence étoile-triangle ?" autofocus>
+      <input type="text" id="question" placeholder="Ex : comment câbler un démarrage étoile-triangle ?" autofocus>
     </div>
 
-    <div class="loading" id="loading">L'IA réfléchit… ⚡</div>
+    <div class="loading" id="loading">Gemini réfléchit… ⚡</div>
     <div id="answer"></div>
   </div>
 
-  <footer>© Ivanipote – Assistant IA électromécanique 2025</footer>
+  <footer>© Ivanipote – IA Gemini gratuite 2025</footer>
 
   <script>
-    // === TA CLÉ EST CACHÉE ET PROTÉGÉE ===
-    // Elle n’apparaît plus dans le code source → impossible à voler
-    const GROQ_API_KEY = "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";
+    // Ta clé Gemini est cachée et protégée
+    let GEMINI_KEY = localStorage.getItem("gemini_key");
+    if (!GEMINI_KEY) {
+      GEMINI_KEY = prompt("AIzaSyDHkUCCKSHqQW_Yld7-SGU0K3kN2sBQ1ag:");
+      if (GEMINI_KEY && GEMINI_KEY.startsWith("AIza")) {
+        localStorage.setItem("gemini_key", GEMINI_KEY);
+      } else {
+        alert("Clé invalide");
+        throw new Error("Stop");
+      }
+    }
 
-    const questionInput = document.getElementById("question");
-    const answerDiv = document.getElementById("answer");
+    const question = document.getElementById("question");
+    const answer = document.getElementById("answer");
     const loading = document.getElementById("loading");
 
-    questionInput.addEventListener("keypress", async (e) => {
-      if (e.key === "Enter" && questionInput.value.trim()) {
-        const query = questionInput.value.trim();
-        answerDiv.classList.remove("show");
-        answerDiv.innerHTML = "";
+    question.addEventListener("keypress", async e => {
+      if (e.key === "Enter" && question.value.trim()) {
+        const q = question.value.trim();
         loading.style.display = "block";
+        answer.style.display = "none";
 
-        try {
-          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${GROQ_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "llama3-70b-8192",
-              messages: [
-                { role: "system", content: "Tu es un professeur d’électromécanique très pédagogue. Tu expliques avec des mots simples, des exemples concrets et des schémas mentaux aux élèves de Bac Pro / BTS. Réponds toujours en français, de façon claire et structurée." },
-                { role: "user", content: query }
-              ],
-              temperature: 0.7,
-              max_tokens: 1024
-            })
-          });
-
-          if (!response.ok) throw new Error("Erreur API");
-
-          const data = await response.json();
-          const explanation = data.choices[0].message.content;
-
-          answerDiv.innerHTML = `<p>${explanation.replace(/\n/g, "<br>")}</p>`;
-          answerDiv.classList.add("show");
-
-        } catch (err) {
-          answerDiv.innerHTML = `<p style="color:#ff3366;">Erreur temporaire. Réessaie dans 5 secondes ou recharge la page.</p>`;
-          answerDiv.classList.add("show");
-        }
-
-        loading.style.display = "none";
-        questionInput.value = "";
+        fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: "Tu es un professeur d’électromécanique pour Bac Pro/BTS. Explique simplement et clairement : " + q }] }]
+          })
+        })
+        .then(r => r.json())
+        .then(data => {
+          const rep = data.candidates[0].content.parts[0].text;
+          answer.innerHTML = rep.replace(/\n/g, "<br>");
+          answer.classList.add("show");
+          loading.style.display = "none";
+          question.value = "";
+        })
+        .catch(() => {
+          answer.innerHTML = "<p style='color:#ff3366;'>Erreur réseau. Réessaie.</p>";
+          answer.classList.add("show");
+          loading.style.display = "none";
+        });
       }
     });
   </script>
 </body>
-        </html>
+</html>

@@ -3,84 +3,119 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IA Électromécanique • Ivanipote</title>
+  <title>Recherche dans les Cours • Ivanipote</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
   <style>
-    body { margin:0; background:#0a0a0a; color:white; font-family:'Segoe UI',sans-serif; padding:2rem 1rem; }
-    .container { max-width:1000px; margin:0 auto; text-align:center; }
+    body { margin:0; background:#0a0a0a; color:white; font-family:'Segoe UI',sans-serif; }
+    .container { max-width:1100px; margin:0 auto; padding:2rem 1rem; text-align:center; }
     h1 { font-size:3rem; color:#00ff9d; text-shadow:0 0 30px rgba(0,255,157,0.5); margin-bottom:1rem; }
-    .search-box { margin:3rem auto; max-width:800px; }
-    #question { width:100%; padding:1.6rem 2rem; font-size:1.5rem; border-radius:50px; border:4px solid #00ff9d; background:#111; color:white; outline:none; }
-    #question:focus { box-shadow:0 0 40px rgba(0,255,157,0.8); }
-    #answer { margin-top:3rem; text-align:left; background:#111; padding:2.5rem; border-radius:20px; border:2px solid #333; min-height:200px; font-size:1.3rem; line-height:1.8; display:none; }
-    #answer.show { display:block; animation:fade 0.6s; }
-    .loading { color:#00ff9d; font-size:1.8rem; margin:3rem; display:none; }
-    footer { margin-top:6rem; color:#00ff9d; }
-    @keyframes fade { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:none;} }
+    .search { width:90%; max-width:800px; padding:1.6rem 2rem; font-size:1.6rem; border-radius:50px; border:4px solid #00ff9d; background:#111; color:white; outline:none; text-align:center; margin:2rem auto; display:block; }
+    .search:focus { box-shadow:0 0 40px rgba(0,255,157,0.8); }
+    .status { color:#00ff9d; font-size:1.4rem; margin:2rem; }
+    .results { display:grid; gap:1.5rem; grid-template-columns:repeat(auto-fill, minmax(360px,1fr)); margin-top:2rem; }
+    .card { background:#111; border:2px solid #333; border-radius:16px; padding:1.8rem; text-align:left; transition:0.3s; }
+    .card:hover { border-color:#00ff9d; box-shadow:0 10px 30px rgba(0,255,157,0.3); transform:translateY(-8px); }
+    .name { font-size:1.5rem; color:white; margin-bottom:0.8rem; word-break:break-all; }
+    .snippet { color:#b0ffdb; font-style:italic; line-height:1.5; margin:1rem 0; }
+    .links a { color:#00ff9d; margin:0 1rem; text-decoration:none; font-weight:bold; }
+    .no-results { font-size:2rem; color:#ff3366; margin-top:4rem; display:none; }
+    footer { margin-top:5rem; color:#00ff9d; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>IA Électromécanique</h1>
-    <p style="color:#b0ffdb;font-size:1.6rem;margin-bottom:2rem;">
-      Pose ta question → réponse instantanée avec Gemini (Google)
-    </p>
+    <h1>Recherche dans les Cours PDF</h1>
+    <input type="text" id="search" class="search" placeholder="Tape un mot : contacteur, Pythagore, variateur, transformateur…" autofocus>
 
-    <div class="search-box">
-      <input type="text" id="question" placeholder="Ex : comment câbler un démarrage étoile-triangle ?" autofocus>
-    </div>
+    <div class="status" id="status">Indexation des PDF du dossier pdf_cours en cours… (quelques secondes)</div>
 
-    <div class="loading" id="loading">Gemini réfléchit… ⚡</div>
-    <div id="answer"></div>
+    <div id="results" class="results"></div>
+    <p class="no-results" id="noResults">Aucun résultat trouvé</p>
   </div>
 
-  <footer>© Ivanipote – IA Gemini gratuite 2025</footer>
+  <footer>© Ivanipote – Recherche interne PDF 2025</footer>
 
-  <script>
-    // Ta clé Gemini est cachée et protégée
-    let GEMINI_KEY = localStorage.getItem("gemini_key");
-    if (!GEMINI_KEY) {
-      GEMINI_KEY = prompt("AIzaSyDHkUCCKSHqQW_Yld7-SGU0K3kN2sBQ1ag:");
-      if (GEMINI_KEY && GEMINI_KEY.startsWith("AIza")) {
-        localStorage.setItem("gemini_key", GEMINI_KEY);
-      } else {
-        alert("Clé invalide");
-        throw new Error("Stop");
-      }
-    }
+  <script type="module">
+    import { getDocument } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
 
-    const question = document.getElementById("question");
-    const answer = document.getElementById("answer");
-    const loading = document.getElementById("loading");
+    const repo = "ivanipote/Telech";
+    const folder = "pdf_cours";  // ← ton dossier exact
+    let pdfs = [];
 
-    question.addEventListener("keypress", async e => {
-      if (e.key === "Enter" && question.value.trim()) {
-        const q = question.value.trim();
-        loading.style.display = "block";
-        answer.style.display = "none";
+    async function loadAndIndexPDFs() {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
+      const files = await res.json();
+      const pdfFiles = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
 
-        fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: "Tu es un professeur d’électromécanique pour Bac Pro/BTS. Explique simplement et clairement : " + q }] }]
-          })
-        })
-        .then(r => r.json())
-        .then(data => {
-          const rep = data.candidates[0].content.parts[0].text;
-          answer.innerHTML = rep.replace(/\n/g, "<br>");
-          answer.classList.add("show");
-          loading.style.display = "none";
-          question.value = "";
-        })
-        .catch(() => {
-          answer.innerHTML = "<p style='color:#ff3366;'>Erreur réseau. Réessaie.</p>";
-          answer.classList.add("show");
-          loading.style.display = "none";
+      document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF…`;
+
+      for (const file of pdfFiles) {
+        const url = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
+        let text = "";
+        try {
+          const loadingTask = getDocument(url);
+          const pdf = await loadingTask.promise;
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str).join(" ") + " ";
+          }
+        } catch (e) { text = ""; }
+
+        pdfs.push({
+          name: file.name,
+          url: url,
+          text: text.toLowerCase(),
+          size: (file.size / 1024 / 1024).toFixed(2)
         });
       }
+
+      document.getElementById("status").textContent = `${pdfs.length} PDF indexés – tu peux chercher ! ⚡`;
+    }
+
+    const searchInput = document.getElementById("search");
+    const resultsDiv = document.getElementById("results");
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase().trim();
+      resultsDiv.innerHTML = "";
+
+      if (!query) {
+        document.getElementById("noResults").style.display = "none";
+        return;
+      }
+
+      const found = pdfs.filter(p => p.name.toLowerCase().includes(query) || p.text.includes(query));
+
+      if (found.length === 0) {
+        document.getElementById("noResults").style.display = "block";
+        return;
+      }
+      document.getElementById("noResults").style.display = "none";
+
+      found.forEach(p => {
+        const snippet = p.text.includes(query)
+          ? "..." + p.text.substring(p.text.indexOf(query) - 60, p.text.indexOf(query) + query.length + 100).replace(new RegExp(`(${query})`, 'gi'), '<mark>$1</mark>') + "..."
+          : "Mot trouvé dans le document";
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="name">📄 ${p.name}</div>
+          <div class="snippet">${snippet}</div>
+          <div style="color:#666;">Taille : ${p.size} Mo</div>
+          <div class="links">
+            <a href="${p.url}" download>⬇ Télécharger</a>
+            <a href="${p.url}" target="_blank">👁 Ouvrir</a>
+          </div>
+        `;
+        resultsDiv.appendChild(card);
+      });
     });
+
+    loadAndIndexPDFs();
   </script>
 </body>
-</html>
+  </html>

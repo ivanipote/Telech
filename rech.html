@@ -5,153 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site d'Apprentissage BTS</title>
     <link rel="stylesheet" href="style.css">
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recherche dans les PDF • Ivanipote</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
-  <style>
+<style>
     body { margin:0; background:#0a0a0a; color:white; font-family:'Segoe UI',sans-serif; padding:2rem 1rem; }
     .container { max-width:1000px; margin:0 auto; text-align:center; }
     h1 { font-size:3rem; color:#00ff9d; text-shadow:0 0 30px rgba(0,255,157,0.5); margin-bottom:1rem; }
-    .search-box { margin:3rem auto; max-width:700px; }
-    #search { width:100%; padding:1.5rem 2rem; font-size:1.5rem; border-radius:50px; border:4px solid #00ff9d; background:#111; color:white; outline:none; text-align:center; }
-    #search:focus { box-shadow:0 0 40px rgba(0,255,157,0.7); }
-    .status { color:#00ff9d; font-size:1.2rem; margin:2rem 0; }
-    .cards { display:grid; gap:2rem; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); margin-top:3rem; }
-    .card { background:#111; border:2px solid #333; border-radius:16px; padding:2rem; transition:0.4s; }
-    .card:hover { border-color:#00ff9d; box-shadow:0 15px 40px rgba(0,255,157,0.3); transform:translateY(-10px); }
-    .name { font-size:1.5rem; color:white; margin:1rem 0; word-break:break-all; }
-    .snippet { color:#b0ffdb; font-style:italic; margin:1rem 0; line-height:1.5; }
-    .btn { background:linear-gradient(90deg,#00ff9d,#00cc7a); color:black; padding:1rem; border-radius:12px; text-decoration:none; font-weight:bold; display:block; }
-    .btn:hover { transform:scale(1.05); }
-    .no-results { font-size:2rem; color:#ff3366; margin-top:5rem; display:none; }
+    .search-box { margin:3rem auto; max-width:800px; }
+    #question { width:100%; padding:1.6rem 2rem; font-size:1.5rem; border-radius:50px; border:4px solid #00ff9d; background:#111; color:white; outline:none; }
+    #question:focus { box-shadow:0 0 40px rgba(0,255,157,0.8); }
+    #answer { margin-top:3rem; text-align:left; background:#111; padding:2.5rem; border-radius:20px; border:2px solid #333; min-height:200px; font-size:1.3rem; line-height:1.8; display:none; }
+    #answer.show { display:block; animation:fade 0.6s; }
+    .pdfs { margin-top:2rem; }
+    .pdf-card { background:#0f0f0f; padding:1rem; margin:1rem 0; border-left:5px solid #00ff9d; border-radius:8px; }
+    .loading { color:#00ff9d; font-size:1.5rem; margin:3rem; }
     footer { margin-top:6rem; color:#00ff9d; }
+    @keyframes fade { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:none;} }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>Recherche dans les PDF</h1>
-    <p style="color:#b0ffdb;font-size:1.5rem;">Recherche dans le nom + à l’intérieur du texte de tous les PDF</p>
+    <h1>IA Électromécanique</h1>
+    <p style="color:#b0ffdb;font-size:1.6rem;margin-bottom:2rem;">
+      Pose n’importe quelle question → je t’explique clairement + je te donne les PDF correspondants
+    </p>
 
     <div class="search-box">
-      <input type="text" id="search" placeholder="Ex : contacteur, variateur de vitesse, PLC Siemens, moteur asynchrone..." autofocus>
+      <input type="text" id="question" placeholder="Ex : comment fonctionne un variateur de fréquence ? ou comment câbler un démarrage étoile-triangle ?" autofocus>
     </div>
 
-    <div class="status" id="status">Chargement et indexation des PDF en cours… ⚡</div>
+    <div id="answer"></div>
+    <div class="loading" id="loading" style="display:none;">Grok réfléchit… ⚡</div>
 
-    <div id="results" class="cards"></div>
-    <p id="noResults" class="no-results">Aucun résultat trouvé</p>
   </div>
 
-  <footer>© Ivanipote – Moteur de recherche interne PDF 2025</footer>
+  <footer>© Ivanipote – Ton assistant IA électromécanique 2025</footer>
 
-  <script type="module">
-    import { getDocument } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+  <script>
+    const questionInput = document.getElementById("question");
+    const answerDiv = document.getElementById("answer");
+    const loading = document.getElementById("loading");
 
-    const repo = "ivanipote/Telech";
-    const folder = "myfiles";           // ← Change ici si tu veux un autre dossier (myfiles2, etc.)
-    let indexedPDFs = [];
+    // === CHOISIS TON IA ICI (3 options gratuites ou presque) ===
+    const USE_GROK = false;        // true = Grok (nécessite clé API xAI)
+    const USE_GROQ = true;         // true = Llama 3 70B ultra rapide (clé gratuite sur groq.com)
+    const USE_OPENAI = false;     // true = ChatGPT (clé payante mais excellente)
 
-    // 1. Récupère la liste des PDF
-    async function loadPDFList() {
-      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
-      const files = await res.json();
-      return files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
-    }
+    let GROQ_API_KEY = "gsk_...ton_clé_ici..."; // ← mets ta clé Groq ici (gratuit jusqu’à ~1000 requêtes/jour)
 
-    // 2. Extrait tout le texte d’un PDF
-    async function extractTextFromPDF(pdfUrl) {
-      try {
-        const loadingTask = getDocument(pdfUrl);
-        const pdf = await loadingTask.promise;
-        let fullText = "";
+    questionInput.addEventListener("keypress", async (e) => {
+      if (e.key === "Enter" && questionInput.value.trim()) {
+        const query = questionInput.value.trim();
+        answerDiv.classList.remove("show");
+        answerDiv.innerHTML = "";
+        loading.style.display = "block";
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map(item => item.str).join(" ");
-          fullText += pageText + " ";
+        // 1. Réponse IA
+        let explanation = "Désolé, l’IA n’est pas configurée.";
+        if (USE_GROQ) {
+          explanation = await askGroq(query);
+        } else if (USE_GROK) {
+          explanation = await askGrok(query);
+        } else if (USE_OPENAI) {
+          explanation = await askOpenAI(query);
         }
-        return fullText.toLowerCase();
-      } catch (e) {
-        return "";
-      }
-    }
 
-    // 3. Indexe tous les PDF au chargement
-    async function indexAllPDFs() {
-      const pdfFiles = await loadPDFList();
-      document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF en cours…`;
+        // 2. Recherche dans tes PDF (texte complet)
+        const pdfMatches = await searchInMyPDFs(query);
 
-      for (let file of pdfFiles) {
-        const rawUrl = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
-        const text = await extractTextFromPDF(rawUrl);
-
-        indexedPDFs.push({
-          name: file.name,
-          url: rawUrl,
-          size: (file.size / 1024 / 1024).toFixed(2),
-          text: text
-        });
-      }
-
-      document.getElementById("status").textContent = `${indexedPDFs.length} PDF indexés et prêts ! Tu peux chercher ⚡`;
-      searchInput.focus();
-    }
-
-    // 4. Recherche
-    const searchInput = document.getElementById("search");
-    const resultsDiv = document.getElementById("results");
-
-    searchInput.addEventListener("input", () => {
-      const query = searchInput.value.toLowerCase().trim();
-      resultsDiv.innerHTML = "";
-
-      if (!query) {
-        document.getElementById("noResults").style.display = "none";
-        return;
-      }
-
-      const matches = indexedPDFs.filter(pdf => 
-        pdf.name.toLowerCase().includes(query) || 
-        pdf.text.includes(query)
-      );
-
-      if (matches.length === 0) {
-        document.getElementById("noResults").style.display = "block";
-        return;
-      }
-
-      document.getElementById("noResults").style.display = "none";
-
-      matches.forEach(pdf => {
-        // Petit extrait autour du mot recherché
-        const index = pdf.text.indexOf(query);
-        const snippet = index > -1 
-          ? "..." + pdf.text.substring(Math.max(0, index - 50), index + query.length + 100) + "..."
-          : "Mot trouvé dans le document";
-
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div style="font-size:4rem;">📄</div>
-          <div class="name">${pdf.name}</div>
-          <div class="snippet">${snippet.replace(new RegExp(`(${query})`, 'gi'), '<mark>$1</mark>')}</div>
-          <div style="color:#666; margin:1rem 0;">Taille : ${pdf.size} Mo</div>
-          <a href="${pdf.url}" class="btn" download>Télécharger</a>
-          <a href="${pdf.url}" target="_blank" style="color:#00ff9d; display:block; margin-top:0.8rem;">👁️ Ouvrir dans l'onglet</a>
+        // Affichage final
+        answerDiv.innerHTML = `
+          <h2 style="color:#00ff9d;">Réponse IA :</h2>
+          <p>${explanation.replace(/\n/g, "<br>")}</p>
+          ${pdfMatches.length > 0 ? `<h2 style="color:#00ff9d;margin-top:3rem;">PDF trouvés dans ton cours :</h2><div class="pdfs">${pdfMatches}</div>` : ""}
         `;
-        resultsDiv.appendChild(card);
-      });
+        loading.style.display = "none";
+        answerDiv.classList.add("show");
+        questionInput.value = "";
+      }
     });
 
-    // Lancement
-    indexAllPDFs();
+    // Fonction Groq (Llama 3 70B – gratuit & ultra rapide)
+    async function askGroq(query) {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama3-70b-8192",
+          messages: [{ role: "system", content: "Tu es un professeur d’électromécanique très clair, qui explique aux élèves de Bac Pro et BTS avec des exemples simples et des schémas mentaux. Réponds toujours en français." },
+                     { role: "user", content: query }],
+          temperature: 0.7,
+          max_tokens: 1024
+        })
+      });
+      const data = await response.json();
+      return data.choices[0].message.content;
+    }
+
+    // Recherche dans tes propres PDF (même code que la page précédente)
+    async function searchInMyPDFs(query) {
+      const lowerQuery = query.toLowerCase();
+      const res = await fetch(`https://api.github.com/repos/ivanipote/Telech/contents/myfiles`);
+      const files = await res.json();
+      const pdfFiles = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+      let matches = "";
+
+      for (let file of pdfFiles) {
+        const rawUrl = `https://raw.githubusercontent.com/ivanipote/Telech/main/myfiles/${encodeURIComponent(file.name)}`;
+        const text = await fetch(rawUrl).then(r => r.text().toLowerCase());
+        if (text.includes(lowerQuery)) {
+          matches += `
+            <div class="pdf-card">
+              <strong>📄 ${file.name}</strong><br>
+              <a href="${rawUrl}" download style="color:#00ff9d;">⬇ Télécharger</a> • 
+              <a href="${rawUrl}" target="_blank" style="color:#00cc7a;">👁 Ouvrir</a>
+            </div>`;
+        }
+      }
+      return matches;
+    }
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>

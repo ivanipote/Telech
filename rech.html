@@ -41,7 +41,7 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
 
     const repo = "ivanipote/Telech";
-    const folder = "lescourpdf";
+    const folder = "pdf_cours";
     let pdfs = [];
 
     async function loadAndIndexPDFs() {
@@ -53,15 +53,15 @@
         const pdfFiles = files.filter(f => f.type === "file" && f.name.toLowerCase().endsWith('.pdf'));
 
         if (pdfFiles.length === 0) {
-          document.getElementById("status").innerHTML = `Dossier <code>pdf_cours</code> vide ou inexistant.<br>Ajoute tes PDF dedans et rafraîchis la page !`;
+          document.getElementById("status").innerHTML = `Dossier <code>pdf_cours</code> vide.<br>Ajoute tes PDF dedans et rafraîchis !`;
           return;
         }
 
-        document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF en cours…`;
+        document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF…`;
 
         for (const file of pdfFiles) {
           const url = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
-          let text = file.name.toLowerCase(); // au minimum le nom est indexé
+          let text = file.name.toLowerCase();
           try {
             const loadingTask = getDocument(url);
             const pdf = await loadingTask.promise;
@@ -70,7 +70,7 @@
               const content = await page.getTextContent();
               text += " " + content.items.map(item => item.str).join(" ").toLowerCase();
             }
-          } catch (e) { console.log("PDF non lisible : ${file.name}`); }
+          } catch (e) {}
 
           pdfs.push({
             name: file.name,
@@ -83,7 +83,7 @@
         document.getElementById("status").textContent = `${pdfs.length} PDF prêts – tape ton mot-clé ! ⚡`;
 
       } catch (e) {
-        document.getElementById("status").innerHTML = `Erreur : le dossier <code>pdf_cours</code> n'existe pas ou est vide.<br>Crée-le et ajoute tes PDF !`;
+        document.getElementById("status").innerHTML = `Erreur : dossier <code>pdf_cours</code> introuvable.<br>Crée-le sur GitHub et ajoute des PDF.`;
       }
     }
 
@@ -130,4 +130,4 @@
     loadAndIndexPDFs();
   </script>
 </body>
-</html>
+  </html>

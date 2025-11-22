@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    </aside>
     <main>
         <!DOCTYPE html>
 <html lang="fr">
@@ -122,66 +120,153 @@
     async function loadFiles() {
       const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
       const files = await res.json();
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recherche dans les PDF • Ivanipote</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs" type="module"></script>
+  <style>
+    body { margin:0; background:#0a0a0a; color:white; font-family:'Segoe UI',sans-serif; padding:2rem 1rem; }
+    .container { max-width:1000px; margin:0 auto; text-align:center; }
+    h1 { font-size:3rem; color:#00ff9d; text-shadow:0 0 30px rgba(0,255,157,0.5); margin-bottom:1rem; }
+    .search-box { margin:3rem auto; max-width:700px; }
+    #search { width:100%; padding:1.5rem 2rem; font-size:1.5rem; border-radius:50px; border:4px solid #00ff9d; background:#111; color:white; outline:none; text-align:center; }
+    #search:focus { box-shadow:0 0 40px rgba(0,255,157,0.7); }
+    .status { color:#00ff9d; font-size:1.2rem; margin:2rem 0; }
+    .cards { display:grid; gap:2rem; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); margin-top:3rem; }
+    .card { background:#111; border:2px solid #333; border-radius:16px; padding:2rem; transition:0.4s; }
+    .card:hover { border-color:#00ff9d; box-shadow:0 15px 40px rgba(0,255,157,0.3); transform:translateY(-10px); }
+    .name { font-size:1.5rem; color:white; margin:1rem 0; word-break:break-all; }
+    .snippet { color:#b0ffdb; font-style:italic; margin:1rem 0; line-height:1.5; }
+    .btn { background:linear-gradient(90deg,#00ff9d,#00cc7a); color:black; padding:1rem; border-radius:12px; text-decoration:none; font-weight:bold; display:block; }
+    .btn:hover { transform:scale(1.05); }
+    .no-results { font-size:2rem; color:#ff3366; margin-top:5rem; display:none; }
+    footer { margin-top:6rem; color:#00ff9d; }
+  </style>
+</head>
+<body>
 
-      allFiles = files.filter(f => f.type === "file");
+  <div class="container">
+    <h1>Recherche dans les PDF</h1>
+    <p style="color:#b0ffdb;font-size:1.5rem;">Recherche dans le nom + à l’intérieur du texte de tous les PDF</p>
 
-      // Affichage initial (tous les fichiers)
-      displayFiles(allFiles);
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Ex : contacteur, variateur de vitesse, PLC Siemens, moteur asynchrone..." autofocus>
+    </div>
+
+    <div class="status" id="status">Chargement et indexation des PDF en cours… ⚡</div>
+
+    <div id="results" class="cards"></div>
+    <p id="noResults" class="no-results">Aucun résultat trouvé</p>
+  </div>
+
+  <footer>© Ivanipote – Moteur de recherche interne PDF 2025</footer>
+
+  <script type="module">
+    import { getDocument } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+
+    const repo = "ivanipote/Telech";
+    const folder = "myfiles";           // ← Change ici si tu veux un autre dossier (myfiles2, etc.)
+    let indexedPDFs = [];
+
+    // 1. Récupère la liste des PDF
+    async function loadPDFList() {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${folder}`);
+      const files = await res.json();
+      return files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
     }
 
-    function displayFiles(filesToShow) {
-      const container = document.getElementById("files");
-      container.innerHTML = "";
+    // 2. Extrait tout le texte d’un PDF
+    async function extractTextFromPDF(pdfUrl) {
+      try {
+        const loadingTask = getDocument(pdfUrl);
+        const pdf = await loadingTask.promise;
+        let fullText = "";
 
-      if (filesToShow.length === 0) {
-        document.getElementById("noResults").style.display = "block";
-        return;
-      } else {
-        document.getElementById("noResults").style.display = "none";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(item => item.str).join(" ");
+          fullText += pageText + " ";
+        }
+        return fullText.toLowerCase();
+      } catch (e) {
+        return "";
+      }
+    }
+
+    // 3. Indexe tous les PDF au chargement
+    async function indexAllPDFs() {
+      const pdfFiles = await loadPDFList();
+      document.getElementById("status").textContent = `Indexation de ${pdfFiles.length} PDF en cours…`;
+
+      for (let file of pdfFiles) {
+        const rawUrl = `https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}`;
+        const text = await extractTextFromPDF(rawUrl);
+
+        indexedPDFs.push({
+          name: file.name,
+          url: rawUrl,
+          size: (file.size / 1024 / 1024).toFixed(2),
+          text: text
+        });
       }
 
-      filesToShow.forEach((file, index) => {
-        const isPDF = file.name.toLowerCase().endsWith('.pdf');
-        const icon = isPDF ? "📄" : "📦";
-        const size = (file.size / 1024 / 1024).toFixed(2);
+      document.getElementById("status").textContent = `${indexedPDFs.length} PDF indexés et prêts ! Tu peux chercher ⚡`;
+      searchInput.focus();
+    }
+
+    // 4. Recherche
+    const searchInput = document.getElementById("search");
+    const resultsDiv = document.getElementById("results");
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase().trim();
+      resultsDiv.innerHTML = "";
+
+      if (!query) {
+        document.getElementById("noResults").style.display = "none";
+        return;
+      }
+
+      const matches = indexedPDFs.filter(pdf => 
+        pdf.name.toLowerCase().includes(query) || 
+        pdf.text.includes(query)
+      );
+
+      if (matches.length === 0) {
+        document.getElementById("noResults").style.display = "block";
+        return;
+      }
+
+      document.getElementById("noResults").style.display = "none";
+
+      matches.forEach(pdf => {
+        // Petit extrait autour du mot recherché
+        const index = pdf.text.indexOf(query);
+        const snippet = index > -1 
+          ? "..." + pdf.text.substring(Math.max(0, index - 50), index + query.length + 100) + "..."
+          : "Mot trouvé dans le document";
 
         const card = document.createElement("div");
         card.className = "card";
-        card.style.transitionDelay = `${index * 0.05}s`; // petit effet d'apparition en cascade
         card.innerHTML = `
-          <div class="icon">${icon}</div>
-          <div class="name">${file.name}</div>
-          <div class="info">Taille : ${size} Mo</div>
-          <a href="https://raw.githubusercontent.com/${repo}/main/${folder}/${encodeURIComponent(file.name)}"
-             class="btn" download>
-            ⬇ Télécharger
-          </a>
+          <div style="font-size:4rem;">📄</div>
+          <div class="name">${pdf.name}</div>
+          <div class="snippet">${snippet.replace(new RegExp(`(${query})`, 'gi'), '<mark>$1</mark>')}</div>
+          <div style="color:#666; margin:1rem 0;">Taille : ${pdf.size} Mo</div>
+          <a href="${pdf.url}" class="btn" download>Télécharger</a>
+          <a href="${pdf.url}" target="_blank" style="color:#00ff9d; display:block; margin-top:0.8rem;">👁️ Ouvrir dans l'onglet</a>
         `;
-        container.appendChild(card);
-
-        // Animation d'apparition
-        setTimeout(() => card.classList.add("visible"), 50);
+        resultsDiv.appendChild(card);
       });
-    }
-
-    // Recherche en temps réel
-    document.getElementById("searchInput").addEventListener("input", (e) => {
-      const query = e.target.value.toLowerCase().trim();
-
-      if (query === "") {
-        displayFiles(allFiles);
-        return;
-      }
-
-      const filtered = allFiles.filter(file =>
-        file.name.toLowerCase().includes(query)
-      );
-
-      displayFiles(filtered);
     });
 
-    // Chargement au démarrage
-    loadFiles();
+    // Lancement
+    indexAllPDFs();
   </script>
 </body>
 </html>
